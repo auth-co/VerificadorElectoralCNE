@@ -18,7 +18,7 @@ import { useSecurity } from './hooks/useSecurity';
 import { useAutoUpdate } from './hooks/useAutoUpdate';
 import { useElectronConfig } from './hooks/useElectronConfig';
 import SecurityOverlay from './components/SecurityOverlay';
-import UpdateBanner from './components/UpdateBanner';
+import UpdateModal from './components/UpdateModal';
 import Header from './components/Header';
 import ModalErrores from './components/ModalErrores';
 import Modal from './components/Modal';
@@ -409,15 +409,17 @@ export default function App() {
     <div className="bg-[#40376d] relative min-h-screen w-full overflow-auto">
       <SecurityOverlay status={securityStatus} message={securityMessage} />
 
-      <UpdateBanner
+      <UpdateModal
         available={update.available}
         progress={update.progress}
         ready={update.ready}
         updateError={update.updateError}
         canRetry={update.canRetry}
+        dismissed={update.dismissed}
         onDownload={update.download}
         onInstall={update.install}
         onManualDownload={update.openManualDownload}
+        onDismiss={update.dismiss}
       />
 
       <div className="max-w-[1440px] mx-auto relative min-h-[1024px] p-8">

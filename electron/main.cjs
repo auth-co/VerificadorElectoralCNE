@@ -283,8 +283,8 @@ function setupAutoUpdater() {
     }, delayMs);
   }
 
-  // Check inicial a los 5 segundos
-  setTimeout(doCheck, 5000);
+  // Check inicial a los 3 segundos (esperar a que la ventana esté lista)
+  setTimeout(doCheck, 3000);
 
   // Re-check cada 30 minutos (por si la app queda abierta mucho tiempo)
   setInterval(doCheck, INTERVALO_RECHECK_MS);
@@ -305,7 +305,14 @@ ipcMain.handle('obtener-security-status', () => {
 ipcMain.handle('descargar-actualizacion', async () => {
   if (!autoUpdater) return { success: false, error: 'Auto-updater no disponible' };
   try {
-    await autoUpdater.downloadUpdate();
+    // NO se hace await — el .exe pesa ~245MB y bloquearía el IPC indefinidamente.
+    // El progreso y errores llegan por eventos (download-progress / error).
+    autoUpdater.downloadUpdate().catch(err => {
+      console.error('[updater] Error durante descarga:', err.message);
+      if (mainWindow) {
+        mainWindow.webContents.send('update-error', { message: err.message });
+      }
+    });
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
