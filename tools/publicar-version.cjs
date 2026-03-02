@@ -202,12 +202,14 @@ ok(`Release ${tag} creada`);
 step(9, 'Verificando assets publicados en GitHub');
 
 // Esperar un momento para que GitHub procese los uploads
-execSync('sleep 3');
+execSync('sleep 5');
 
-const assetsRaw = capture(
-  `gh api repos/danielm0101/VerificadorElectoral/releases/tags/${tag} --jq '[.assets[] | {name: .name, size: .size}]'`
+const ghToken = capture('gh auth token');
+const releaseInfo = capture(
+  `curl -sf -H "Authorization: token ${ghToken}" "https://api.github.com/repos/danielm0101/VerificadorElectoral/releases/tags/${tag}"`
 );
-const assets = JSON.parse(assetsRaw);
+const releaseJson = JSON.parse(releaseInfo);
+const assets = releaseJson.assets || [];
 const assetMap = Object.fromEntries(assets.map(a => [a.name, a.size]));
 
 // Verificar .exe
