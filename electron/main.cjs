@@ -1044,6 +1044,7 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
       });
 
       let resultadoFinal = null;
+      let ultimoErrorR = null; // Capturar el ultimo mensaje de error de R
       procesoRActual = rProcess; // Rastrear para poder cancelar
       let stdoutBuffer = ''; // Buffer para manejar JSON parcial entre chunks
 
@@ -1064,6 +1065,8 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
             console.log('[R Comparacion]', evento.tipo, evento.mensaje || '');
             if (evento.tipo === 'fin') {
               resultadoFinal = evento;
+            } else if (evento.tipo === 'error') {
+              ultimoErrorR = evento.mensaje || 'Error en R';
             }
           } catch (e) {
             console.log('[R]', trimmed);
@@ -1074,6 +1077,7 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
       rProcess.stderr.on('data', (data) => {
         const msg = data.toString().trim();
         console.error('[R Error]', msg);
+        if (msg) ultimoErrorR = msg;
         // Enviar errores de R al frontend para que el usuario los vea
         if (mainWindow && msg) {
           mainWindow.webContents.send('r-evento', { tipo: 'error', mensaje: msg });
@@ -1093,6 +1097,8 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
             }
             if (evento.tipo === 'fin') {
               resultadoFinal = evento;
+            } else if (evento.tipo === 'error') {
+              ultimoErrorR = evento.mensaje || 'Error en R';
             }
           } catch (e) {
             console.log('[R final]', stdoutBuffer.trim());
@@ -1106,7 +1112,8 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
           success: code === 0,
           code,
           outputDir,
-          resultado: resultadoFinal
+          resultado: resultadoFinal,
+          error: code !== 0 ? (ultimoErrorR || 'Error en R (codigo ' + code + ')') : undefined
         });
       });
 
