@@ -102,7 +102,7 @@ const tag  = `v${vNew}`;
 
 // Verificar que la release no existe ya en GitHub
 try {
-  capture(`gh api repos/danielm0101/VerificadorElectoral/releases/tags/${tag} --jq '.tag_name'`);
+  capture(`gh api repos/auth-co/VerificadorElectoral/releases/tags/${tag} --jq '.tag_name'`);
   fail(`La release ${tag} ya existe en GitHub. Elige una versión diferente.`);
 } catch (e) {
   if (e.message.includes('ya existe')) throw e; // re-lanzar el fail()
@@ -206,7 +206,7 @@ execSync('sleep 5');
 
 const ghToken = execSync('gh auth token', { cwd: ROOT, encoding: 'utf8', env: process.env }).trim();
 const releaseInfo = capture(
-  `curl -sf -H "Authorization: token ${ghToken}" "https://api.github.com/repos/danielm0101/VerificadorElectoral/releases/tags/${tag}"`
+  `curl -sf -H "Authorization: token ${ghToken}" "https://api.github.com/repos/auth-co/VerificadorElectoral/releases/tags/${tag}"`
 );
 const releaseJson = JSON.parse(releaseInfo);
 const assets = releaseJson.assets || [];
@@ -231,7 +231,7 @@ ok(`latest.yml (${assetMap['latest.yml']} bytes) ✓`);
 step(10, 'Verificando latest.yml descargable desde GitHub');
 
 try {
-  const latestUrl = `https://github.com/danielm0101/VerificadorElectoral/releases/download/${tag}/latest.yml`;
+  const latestUrl = `https://github.com/auth-co/VerificadorElectoral/releases/download/${tag}/latest.yml`;
   const contenido = capture(`curl -fsSL "${latestUrl}"`);
 
   if (!contenido.includes(`version: ${vNew}`)) {
@@ -252,7 +252,7 @@ console.log('\n╔════════════════════�
 console.log(`║  ✅ v${vNew} publicada correctamente          `);
 console.log('╚══════════════════════════════════════════════╝');
 console.log(`
-  Release:  https://github.com/danielm0101/VerificadorElectoral/releases/tag/${tag}
+  Release:  https://github.com/auth-co/VerificadorElectoral/releases/tag/${tag}
   .exe:     ${exeName} (${exeSizeMB} MB)
   SHA512:   ${sha512.substring(0, 44)}...
 

@@ -35,8 +35,8 @@ export const TAB_BG_CLASSES: Record<Seccion, string> = {
   comparacion_manual: 'bg-[#d3c4d1]'
 };
 
-export const URL_REGISTRADURIA = 'https://danielm0101.github.io/redirect-registraduria/';
-export const URL_RELEASES = 'https://github.com/danielm0101/VerificadorElectoral/releases/latest';
+export const URL_REGISTRADURIA = 'https://auth-co.github.io/redirect-registraduria/';
+export const URL_RELEASES = 'https://github.com/auth-co/VerificadorElectoral/releases/latest';
 
 export function getVisibleTabs(tier: string): Seccion[] {
   if (tier === 'comparador') return COMPARADOR_TABS;

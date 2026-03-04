@@ -72,7 +72,7 @@ function main() {
     console.error(`\nNo se encontro el repo verificador-registro en: ${REGISTRO_REPO}`);
     console.error('Clone el repo primero:');
     console.error(`  cd ${path.dirname(REGISTRO_REPO)}`);
-    console.error('  git clone git@github.com:danielm0101/verificador-registro.git');
+    console.error('  git clone git@github.com:auth-co/verificador-registro.git');
     process.exit(1);
   }
 
@@ -122,7 +122,7 @@ function main() {
       });
       execSync('git push', { cwd: REGISTRO_REPO, encoding: 'utf8', timeout: 30000 });
       console.log('Publicado exitosamente en GitHub Pages.');
-      console.log('URL: https://danielm0101.github.io/verificador-registro/');
+      console.log('URL: https://auth-co.github.io/verificador-registro/');
     } catch (err) {
       console.error('Error publicando:', err.message);
       console.error('Publique manualmente: cd verificador-registro && git add -A && git commit -m "update" && git push');
