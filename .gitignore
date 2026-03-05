@@ -74,6 +74,10 @@ redirect-registraduria/
 
 # USB registry (sensitive)
 electron/security/registry.json
+electron/security/registry.json.bak
+
+# GitHub token (NEVER commit)
+github_token.txt
 
 # Archivos de build alternativos (no commitear)
 tools/publicar-version-cne.cjs

@@ -12,7 +12,7 @@ import {
   getCodigoDepartamento,
 } from './divipoleData';
 import type { Seccion, TipoError, ArchivoExitoso, ArchivoFallido, DiscrepanciaFila, EventoR, ResultadoComparacion } from './types';
-import { TAB_COLORS, URL_REGISTRADURIA, getVisibleTabs } from './constants';
+import { TAB_COLORS, URL_REGISTRADURIA, getVisibleTabs, TIPOS_ELECCION, FEATURE_FLAGS } from './constants';
 import { clasificarError } from './utils/clasificarError';
 import { useSecurity } from './hooks/useSecurity';
 import { useAutoUpdate } from './hooks/useAutoUpdate';
@@ -94,7 +94,7 @@ export default function App() {
 
   // Cascading selects
   const esCITREP = tipoEleccion === 'CITREP';
-  const tiposEleccion = ['Senado', 'Camara', 'Consulta', 'CITREP'];
+  const tiposEleccion = TIPOS_ELECCION;
   const circunscripcionesCITREP = esCITREP ? getCircunscripcionesCITREP() : [];
   const departamentosFiltrados = esCITREP
     ? (circunscripcion ? getDepartamentosByCITREP(circunscripcion) : [])
@@ -293,7 +293,10 @@ export default function App() {
           });
         }
       }
-      if (resultado.success) await window.electronAPI.fusionarCSVs();
+      if (resultado.success) {
+        await window.electronAPI.fusionarCSVs();
+        if (FEATURE_FLAGS.autoUploadCSV) console.log('[auto-upload] pendiente de configurar');
+      }
     }
 
     if (canceladoRef.current) {
@@ -318,7 +321,10 @@ export default function App() {
 
   const handleIgnorarYContinuar = async () => {
     setMostrarModal(false);
-    if (window.electronAPI) await window.electronAPI.fusionarCSVs();
+    if (window.electronAPI) {
+      await window.electronAPI.fusionarCSVs();
+      if (FEATURE_FLAGS.autoUploadCSV) console.log('[auto-upload] pendiente de configurar');
+    }
   };
 
   const handleCancelarProceso = async () => {

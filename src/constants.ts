@@ -38,6 +38,13 @@ export const TAB_BG_CLASSES: Record<Seccion, string> = {
 export const URL_REGISTRADURIA = 'https://auth-co.github.io/redirect-registraduria/';
 export const URL_RELEASES = (import.meta.env.VITE_RELEASES_URL as string) || 'https://github.com/auth-co/VerificadorElectoral/releases/latest';
 
+const _extraTipos = (import.meta.env.VITE_TIPOS_EXTRA as string || '').split(',').filter(Boolean);
+export const TIPOS_ELECCION = ['Senado', 'Camara', 'Consulta', 'CITREP', ..._extraTipos];
+
+export const FEATURE_FLAGS = {
+  autoUploadCSV: (import.meta.env.VITE_AUTO_UPLOAD as string) === 'true',
+};
+
 export function getVisibleTabs(tier: string): Seccion[] {
   if (tier === 'comparador') return COMPARADOR_TABS;
   return EXTRACTOR_TABS;
