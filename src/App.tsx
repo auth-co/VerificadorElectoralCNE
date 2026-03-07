@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import ejemploFormatos from './assets/ejemplo-formatos-e14-e24.png';
-import guiaDriveHojas from './assets/guia-drive-hojas-calculo.png';
 import {
   getDepartamentos,
   getMunicipiosByDepartamento,
@@ -10,10 +9,9 @@ import {
   getMunicipiosByCITREP,
   getZonasCITREP,
   getCodigoDepartamento,
-  getCodigoMunicipio,
 } from './divipoleData';
 import type { Seccion, TipoError, ArchivoExitoso, ArchivoFallido, DiscrepanciaFila, EventoR, ResultadoComparacion } from './types';
-import { TAB_COLORS, URL_REGISTRADURIA, getVisibleTabs, TIPOS_ELECCION, FEATURE_FLAGS } from './constants';
+import { TAB_COLORS, URL_REGISTRADURIA, getVisibleTabs, TIPOS_ELECCION } from './constants';
 import { clasificarError } from './utils/clasificarError';
 import { useSecurity } from './hooks/useSecurity';
 import { useAutoUpdate } from './hooks/useAutoUpdate';
@@ -70,8 +68,7 @@ export default function App() {
 
   // Info tab state
   const [mostrarEjemploFormatos, setMostrarEjemploFormatos] = useState(false);
-  const [mostrarGuiaDrive, setMostrarGuiaDrive] = useState(false);
-  const [checkZonas, setCheckZonas] = useState(false);
+const [checkZonas, setCheckZonas] = useState(false);
   const [checkKey, setCheckKey] = useState(false);
   const [checkE14, setCheckE14] = useState(false);
 
@@ -164,24 +161,7 @@ export default function App() {
     }
   };
 
-  const uploadToDrive = (archivoFinal: string) => {
-    if (!FEATURE_FLAGS.autoUploadCSV || !window.electronAPI?.autoUploadDrive) return;
-    const depCod = getCodigoDepartamento(departamento);
-    const munCod = getCodigoMunicipio(departamento, municipio);
-    window.electronAPI.autoUploadDrive({
-      archivoFinal,
-      tipo: tipoEleccion,
-      circunscripcion: esCITREP ? circunscripcion : undefined,
-      depFolder: `${depCod} - ${departamento}`,
-      munFolder: `${munCod} - ${municipio}`,
-      zonaFolder: `Zona ${zona.padStart(2, '0')}`,
-    }).then(r => {
-      if (r.success) console.log('[Drive] Subido:', r.url);
-      else alert(`[Drive] Error al subir CSV:\n${r.error}`);
-    }).catch(e => alert(`[Drive] Error inesperado:\n${e?.message || e}`));
-  };
-
-  const handleConvertirCSV = async (archivosAProcesar?: string[]) => {
+const handleConvertirCSV = async (archivosAProcesar?: string[]) => {
     const archivos = archivosAProcesar || archivosPDF;
     const esReintento = !!archivosAProcesar;
     if (archivos.length === 0) { alert('No hay archivos para procesar'); return; }
@@ -313,8 +293,7 @@ export default function App() {
       }
       if (resultado.success) {
         const merged = await window.electronAPI.fusionarCSVs();
-        if (merged.archivoFinal) uploadToDrive(merged.archivoFinal);
-      }
+        }
     }
 
     if (canceladoRef.current) {
@@ -341,7 +320,6 @@ export default function App() {
     setMostrarModal(false);
     if (window.electronAPI) {
       const merged = await window.electronAPI.fusionarCSVs();
-      if (merged.archivoFinal) uploadToDrive(merged.archivoFinal);
     }
   };
 
@@ -507,8 +485,6 @@ export default function App() {
             <TabComparacionAutomatica
               checkMigaPan={checkMigaPan}
               onCheckMigaPan={setCheckMigaPan}
-              onMostrarGuiaDrive={() => setMostrarGuiaDrive(true)}
-              onAbrirDrive={() => window.electronAPI?.abrirURL('https://drive.google.com')}
               onContinuar={handleContinuar}
             />
           )}
@@ -565,20 +541,6 @@ export default function App() {
         <img src={ejemploFormatos} alt="Ejemplo de formatos E-14 y E-24" className="w-full rounded-[8px]" />
         <div className="flex justify-center mt-4">
           <button onClick={() => setMostrarEjemploFormatos(false)} className="h-[48px] w-[180px] bg-[#a855f7] rounded-[8px] hover:bg-[#9333ea] transition-colors">
-            <span className="font-['Poppins',sans-serif] font-semibold text-white">CERRAR</span>
-          </button>
-        </div>
-      </Modal>
-
-      {/* Modal guia Drive */}
-      <Modal isOpen={mostrarGuiaDrive} onClose={() => setMostrarGuiaDrive(false)} borderColor="#11d0d0">
-        <div className="text-center mb-4">
-          <h2 className="font-['Poppins',sans-serif] font-bold text-[#11d0d0] text-xl">ABRIR CON HOJAS DE CÁLCULO DE GOOGLE</h2>
-        </div>
-        <div className="h-[2px] bg-[#11d0d0]/30 mb-4" />
-        <img src={guiaDriveHojas} alt="Guía: abrir con Hojas de cálculo de Google" className="w-full rounded-[8px]" />
-        <div className="flex justify-center mt-4">
-          <button onClick={() => setMostrarGuiaDrive(false)} className="h-[48px] w-[180px] bg-[#11d0d0] rounded-[8px] hover:bg-[#0fb8b8] transition-colors">
             <span className="font-['Poppins',sans-serif] font-semibold text-white">CERRAR</span>
           </button>
         </div>

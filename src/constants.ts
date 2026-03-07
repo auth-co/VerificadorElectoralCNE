@@ -41,9 +41,6 @@ export const URL_RELEASES = (import.meta.env.VITE_RELEASES_URL as string) || 'ht
 const _extraTipos = (import.meta.env.VITE_TIPOS_EXTRA as string || '').split(',').filter(Boolean);
 export const TIPOS_ELECCION = ['Senado', 'Camara', 'Consulta', 'CITREP', ..._extraTipos];
 
-export const FEATURE_FLAGS = {
-  autoUploadCSV: (import.meta.env.VITE_AUTO_UPLOAD as string) === 'true',
-};
 
 export function getVisibleTabs(tier: string): Seccion[] {
   if (tier === 'comparador') return COMPARADOR_TABS;

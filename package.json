@@ -1,6 +1,6 @@
 {
   "name": "verificador-electoral",
-  "version": "1.0.46",
+  "version": "1.0.47",
   "description": "Sistema de Verificación Electoral - E14 y E24 - Consejo Nacional Electoral de Colombia",
   "main": "electron/main.cjs",
   "author": {
@@ -31,8 +31,7 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "electron-updater": "^6.7.3",
-    "googleapis": "^171.4.0",
-    "lucide-react": "^0.487.0",
+"lucide-react": "^0.487.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.2"
