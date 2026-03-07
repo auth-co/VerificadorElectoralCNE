@@ -17,10 +17,10 @@ export interface ArchivoFallido {
 export interface DiscrepanciaFila {
   mesa: string;
   puesto: string;
-  nombre: string;
-  votos_oficial: number;
-  votos_extraido: number;
-  discrepancia: number;
+  partido: string;
+  votos_e24: number;
+  votos_e14: number;
+  diferencia: number;
   tipo: string;
 }
 

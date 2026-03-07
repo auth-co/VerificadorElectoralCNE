@@ -31,7 +31,7 @@ export default function TabInformacion({
 
           <button
             onClick={onMostrarEjemploFormatos}
-            className="font-['Poppins',sans-serif] text-[#ffb700] text-base font-semibold hover:underline transition-colors cursor-pointer mb-6 block"
+            className="font-['Poppins',sans-serif] text-[#ffb700] text-base font-semibold hover:text-[#e6a600] transition-colors cursor-pointer mb-6 block"
           >
             Ver ejemplo de formatos
           </button>

@@ -2,25 +2,40 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-export default defineConfig({
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/test/setup.ts',
-  },
-  plugins: [react()],
-  base: './',
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+export default defineConfig(({ mode }) => {
+  const cneColorPlugin = {
+    name: 'cne-theme-color',
+    generateBundle(_: unknown, bundle: Record<string, { type: string; code?: string; source?: string | Uint8Array }>) {
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === 'chunk' && typeof chunk.code === 'string') {
+          chunk.code = chunk.code.replaceAll('#40376d', '#003e74').replaceAll('#40376D', '#003e74');
+        } else if (chunk.type === 'asset' && typeof chunk.source === 'string') {
+          chunk.source = chunk.source.replaceAll('#40376d', '#003e74').replaceAll('#40376D', '#003e74');
+        }
+      }
     },
-  },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-  },
-  server: {
-    port: 5173,
-    strictPort: true,
-  },
+  };
+
+  return {
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: './src/test/setup.ts',
+    },
+    plugins: [react(), ...(mode === 'cne' ? [cneColorPlugin] : [])],
+    base: './',
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true,
+    },
+    server: {
+      port: 5173,
+      strictPort: true,
+    },
+  };
 });

@@ -379,7 +379,7 @@ export default function App() {
   };
 
   const handleGenerarComparacion = async () => {
-    if (!archivoCSV || !carpetaMMV) { alert('Selecciona el archivo CSV extraído y el archivo MMV oficial primero'); return; }
+    if (!archivoCSV || !carpetaMMV) { alert('Selecciona el archivo Excel extraído y el archivo MMV oficial primero'); return; }
     if (!window.electronAPI) { alert('Función disponible solo en la aplicación de escritorio'); return; }
 
     setComparacionEnProgreso(true);
@@ -508,6 +508,7 @@ export default function App() {
               checkMigaPan={checkMigaPan}
               onCheckMigaPan={setCheckMigaPan}
               onMostrarGuiaDrive={() => setMostrarGuiaDrive(true)}
+              onAbrirDrive={() => window.electronAPI?.abrirURL('https://drive.google.com')}
               onContinuar={handleContinuar}
             />
           )}

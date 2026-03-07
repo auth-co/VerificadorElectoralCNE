@@ -34,7 +34,7 @@ export default function TabComparacionArchivos({
             <div className="flex items-start gap-3 mb-3">
               <StepBadge number={1} color="#ff5a5a" />
               <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-lg leading-relaxed">
-                Ingresa a la carpeta de Drive de cada zona y descarga los archivos TOTALES_MIGA_DE_PAN. CSV y los archivos MMV.
+                Ingresa a la carpeta de Drive de cada zona y descarga los archivos resultados_e14_FINAL y los archivos MMV.
               </p>
             </div>
             <p className="font-['Poppins',sans-serif] text-[#ff5a5a] text-base italic leading-relaxed ml-1">
@@ -47,7 +47,7 @@ export default function TabComparacionArchivos({
             <div className="flex items-center gap-3 mb-4">
               <StepBadge number={2} color="#ff5a5a" />
               <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-lg">
-                Sube los archivos "todoscsv.CSV" y MMV de las E-24.
+                Sube los archivos Excel y MMV de las E-24.
               </p>
             </div>
 
@@ -64,13 +64,13 @@ export default function TabComparacionArchivos({
                   <svg className="w-7 h-7 text-[#ff5a5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="font-['Poppins',sans-serif] text-sm font-semibold text-[#ff5a5a]">CSV SELECCIONADO</span>
+                  <span className="font-['Poppins',sans-serif] text-sm font-semibold text-[#ff5a5a]">EXCEL SELECCIONADO</span>
                   <span className="font-['Inter',sans-serif] text-xs text-[#40376d] truncate max-w-full px-2">
                     {archivoCSV.split(/[/\\]/).pop()}
                   </span>
                 </div>
               ) : (
-                <span className="font-['Poppins',sans-serif] text-[22px] text-black">Seleccionar archivo CSV</span>
+                <span className="font-['Poppins',sans-serif] text-[22px] text-black">Seleccionar archivo Excel</span>
               )}
             </button>
 
@@ -186,24 +186,24 @@ export default function TabComparacionArchivos({
                 <tr>
                   <th className="px-3 py-2 text-left font-['Poppins',sans-serif] font-semibold">Mesa</th>
                   <th className="px-3 py-2 text-left font-['Poppins',sans-serif] font-semibold">Puesto</th>
-                  <th className="px-3 py-2 text-left font-['Poppins',sans-serif] font-semibold">Partido / Candidato</th>
-                  <th className="px-3 py-2 text-right font-['Poppins',sans-serif] font-semibold">V. Oficial</th>
-                  <th className="px-3 py-2 text-right font-['Poppins',sans-serif] font-semibold">V. Extraido</th>
+                  <th className="px-3 py-2 text-left font-['Poppins',sans-serif] font-semibold">Partido</th>
+                  <th className="px-3 py-2 text-right font-['Poppins',sans-serif] font-semibold">Votos E-24</th>
+                  <th className="px-3 py-2 text-right font-['Poppins',sans-serif] font-semibold">Votos E-14</th>
                   <th className="px-3 py-2 text-right font-['Poppins',sans-serif] font-semibold">Diferencia</th>
                 </tr>
               </thead>
               <tbody>
                 {discrepanciasDetalle.map((fila, idx) => {
-                  const esMas = fila.discrepancia > 0;
+                  const esMas = fila.diferencia > 0;
                   return (
                     <tr key={idx} className={esMas ? 'bg-red-50 border-b border-red-200' : 'bg-blue-50 border-b border-blue-200'}>
                       <td className="px-3 py-2 font-mono text-xs text-gray-800">{fila.mesa}</td>
                       <td className="px-3 py-2 text-xs text-gray-700 max-w-[150px] truncate">{fila.puesto}</td>
-                      <td className="px-3 py-2 text-xs text-gray-800 max-w-[200px] truncate">{fila.nombre}</td>
-                      <td className="px-3 py-2 text-right font-mono text-xs font-bold text-gray-800">{fila.votos_oficial}</td>
-                      <td className="px-3 py-2 text-right font-mono text-xs font-bold text-gray-800">{fila.votos_extraido}</td>
+                      <td className="px-3 py-2 text-xs text-gray-800 max-w-[200px] truncate">{fila.partido}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs font-bold text-gray-800">{fila.votos_e24}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs font-bold text-gray-800">{fila.votos_e14}</td>
                       <td className={`px-3 py-2 text-right font-mono text-xs font-bold ${esMas ? 'text-red-700' : 'text-blue-700'}`}>
-                        {esMas ? '+' : ''}{fila.discrepancia}
+                        {esMas ? '+' : ''}{fila.diferencia}
                       </td>
                     </tr>
                   );
@@ -214,11 +214,11 @@ export default function TabComparacionArchivos({
           <div className="flex gap-4 mt-2 text-xs font-['Poppins',sans-serif]">
             <span className="flex items-center gap-1">
               <span className="inline-block w-3 h-3 bg-red-200 rounded"></span>
-              <span className="text-red-700">Rojo: Registraduría reporta MÁS votos</span>
+              <span className="text-red-700">Rojo: E-24 reporta MÁS votos que E-14</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-3 h-3 bg-blue-200 rounded"></span>
-              <span className="text-blue-700">Azul: Registraduría reporta MENOS votos</span>
+              <span className="text-blue-700">Azul: E-24 reporta MENOS votos que E-14</span>
             </span>
           </div>
         </div>

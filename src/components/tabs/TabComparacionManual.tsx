@@ -18,7 +18,7 @@ export default function TabComparacionManual({ onAbrirRegistraduria, onAbrirEvid
         <div className="flex items-start gap-3">
           <p className="font-['Poppins',sans-serif] font-semibold text-[#d3c4d1] text-3xl leading-none">2.</p>
           <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-base mt-1">
-            Abre el archivo de comparación y ubícate en la hoja de "comparación"
+            Abre el archivo de comparación y ubícate en la hoja de "discrepancias"
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export default function TabComparacionManual({ onAbrirRegistraduria, onAbrirEvid
               Verifica que el dato de la columna "VOTOS_E14" es el mismo que se encuentra en el acta E-24.
             </p>
             <p className="font-['Poppins',sans-serif] text-[#40376d] text-base mt-4">
-              Si los datos son iguales, significa que no hay discrepancia. <span className="text-[#11d0d0] font-semibold">Borra la fila de la hoja de comparación.</span>
+              Si los datos son iguales, significa que no hay discrepancia. <span className="text-[#11d0d0] font-semibold">Borra la fila de la hoja de discrepancias.</span>
             </p>
             <p className="font-['Poppins',sans-serif] text-base mt-4">
               <span className="text-[#ff6e6e] font-semibold">Si no corresponden los datos significa que hay una discrepancia. </span>

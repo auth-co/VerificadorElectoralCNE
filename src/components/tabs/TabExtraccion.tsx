@@ -58,7 +58,7 @@ export default function TabExtraccion({
           <div className="flex items-center gap-3 mb-4">
             <StepBadge number={3} color="#11d0d0" />
             <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-lg">
-              Selecciona la carpeta donde están los archivos PDF de las E-14 y conviértelos a CSV.
+              Selecciona la carpeta donde están los archivos PDF de las E-14 y conviértelos a Excel.
             </p>
           </div>
 
@@ -73,37 +73,6 @@ export default function TabExtraccion({
               {archivosPDF.length > 0 ? `${archivosPDF.length} PDFs encontrados` : 'SELECCIONAR CARPETA E-14'}
             </span>
           </button>
-
-          <button
-            onClick={onConvertirCSV}
-            disabled={conversionEnProgreso || archivosPDF.length === 0 || !keyAsignada}
-            className={`w-full h-[42px] rounded-[8px] transition-colors mt-4 ${
-              conversionEnProgreso || archivosPDF.length === 0 || !keyAsignada
-                ? 'bg-[#e5e5e5] cursor-not-allowed'
-                : 'bg-[#11d0d0] hover:bg-[#0fb8b8] cursor-pointer'
-            }`}
-          >
-            <span className={`font-['Inter',sans-serif] text-xl ${
-              conversionEnProgreso || archivosPDF.length === 0 || !keyAsignada ? 'text-[#888]' : 'text-white font-semibold'
-            }`}>
-              {conversionEnProgreso ? 'Procesando...' : 'Convertir a CSV'}
-            </span>
-          </button>
-
-          {conversionEnProgreso && (
-            <button
-              onClick={onCancelarProceso}
-              className="w-full h-[42px] rounded-[8px] bg-[#ff5a5a] hover:bg-[#e54a4a] transition-colors cursor-pointer mt-2"
-            >
-              <span className="font-['Inter',sans-serif] text-xl text-white font-semibold">Cancelar</span>
-            </button>
-          )}
-
-          {!keyAsignada && archivosPDF.length > 0 && (
-            <p className="font-['Poppins',sans-serif] text-xs text-[#ff5a5a] mt-2 text-center">
-              Ingresa una API Key en Identificación
-            </p>
-          )}
 
           {/* Recuadro de progreso */}
           <div className="bg-[rgba(17,208,208,0.08)] rounded-[8px] p-4 w-full min-h-[120px] max-h-[250px] overflow-y-auto mt-4">
@@ -183,7 +152,7 @@ export default function TabExtraccion({
                 </div>
                 {csvsGenerados.length > 0 && (
                   <div>
-                    <p className="font-['Poppins',sans-serif] text-xs text-[#40376d] mb-2">CSVs generados:</p>
+                    <p className="font-['Poppins',sans-serif] text-xs text-[#40376d] mb-2">Archivos Excel generados:</p>
                     {csvsGenerados.map((csv, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs text-[#11d0d0]">
                         <span>✓</span> {csv}
@@ -194,6 +163,37 @@ export default function TabExtraccion({
               </div>
             )}
           </div>
+
+          <button
+            onClick={onConvertirCSV}
+            disabled={conversionEnProgreso || archivosPDF.length === 0 || !keyAsignada}
+            className={`w-full h-[42px] rounded-[8px] transition-colors mt-4 ${
+              conversionEnProgreso || archivosPDF.length === 0 || !keyAsignada
+                ? 'bg-[#e5e5e5] cursor-not-allowed'
+                : 'bg-[#11d0d0] hover:bg-[#0fb8b8] cursor-pointer'
+            }`}
+          >
+            <span className={`font-['Inter',sans-serif] text-xl ${
+              conversionEnProgreso || archivosPDF.length === 0 || !keyAsignada ? 'text-[#888]' : 'text-white font-semibold'
+            }`}>
+              {conversionEnProgreso ? 'Procesando...' : 'Convertir a Excel'}
+            </span>
+          </button>
+
+          {conversionEnProgreso && (
+            <button
+              onClick={onCancelarProceso}
+              className="w-full h-[42px] rounded-[8px] bg-[#ff5a5a] hover:bg-[#e54a4a] transition-colors cursor-pointer mt-2"
+            >
+              <span className="font-['Inter',sans-serif] text-xl text-white font-semibold">Cancelar</span>
+            </button>
+          )}
+
+          {!keyAsignada && archivosPDF.length > 0 && (
+            <p className="font-['Poppins',sans-serif] text-xs text-[#ff5a5a] mt-2 text-center">
+              Ingresa una API Key en Identificación
+            </p>
+          )}
 
           {conversionCompleta && (
             <button
@@ -251,7 +251,7 @@ export default function TabExtraccion({
           <div className="flex items-center gap-3 mt-6">
             <StepBadge number={5} color="#11d0d0" />
             <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-lg">
-              Sube a la carpeta de Drive los archivos CSV Y MMV.
+              Sube los archivos Excel y MMV a la carpeta de Drive que te indique el líder.
             </p>
           </div>
         </div>
@@ -263,8 +263,8 @@ export default function TabExtraccion({
           </p>
 
           <div className="space-y-5">
-            <Checkbox checked={checkCsvSubidos} onChange={onCheckCsvSubidos} label="Archivos .csv de la zona en la carpeta del computador y subidos a Drive" />
-            <Checkbox checked={checkTotales} onChange={onCheckTotales} label="Archivo TOTALES_MIGA_DE_PAN Subido a la carpeta del DRIVE" />
+            <Checkbox checked={checkCsvSubidos} onChange={onCheckCsvSubidos} label="Archivos Excel de la zona en la carpeta del computador y subidos a Drive" />
+            <Checkbox checked={checkTotales} onChange={onCheckTotales} label="Archivo resultados_e14_FINAL subido a la carpeta del DRIVE" />
             <Checkbox checked={checkMmv} onChange={onCheckMmv} label="MMV de la E-24 que corresponde a tu zona, descargada en tu computador y subida al DRIVE" />
           </div>
         </div>
