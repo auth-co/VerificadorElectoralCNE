@@ -177,8 +177,8 @@ export default function App() {
       zonaFolder: `Zona ${zona.padStart(2, '0')}`,
     }).then(r => {
       if (r.success) console.log('[Drive] Subido:', r.url);
-      else console.warn('[Drive] Error al subir:', r.error);
-    }).catch(e => console.warn('[Drive] Upload error:', e));
+      else alert(`[Drive] Error al subir CSV:\n${r.error}`);
+    }).catch(e => alert(`[Drive] Error inesperado:\n${e?.message || e}`));
   };
 
   const handleConvertirCSV = async (archivosAProcesar?: string[]) => {
