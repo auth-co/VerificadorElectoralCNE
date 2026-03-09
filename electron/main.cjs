@@ -560,38 +560,53 @@ ipcMain.handle('convertir-pdf-csv-v2', async (event, { archivos, apiKey, modo = 
   console.log('modo:', modo);
   return new Promise((resolve) => {
     try {
-      // Construir nombre del CSV de coordenadas según tipo de elección
-      // Senado: senado.csv (nacional, uno solo)
-      // Cámara: camara_XX.csv (por departamento, XX = código dept)
-      // Consulta: consulta.csv (uno solo)
-      // CITREP: citrep_XX.csv (por circunscripción, XX = número)
-      let nombreCSV;
-      // Normalizar: quitar tildes para comparación segura
+      // Normalizar tipo para comparación segura (quitar tildes)
       const tipoNorm = tipoEleccion.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      // Consulados: código de departamento "88" en DIVIPOLE
+      const esConsulado = codigoDepartamento === '88';
+
+      // Seleccionar script y CSV de coordenadas según tipo + consulado
+      // Senado (normal/consulados): mapa fijo, sin coordenadas
+      // Cámara consulados: mapa fijo, sin coordenadas
+      // Cámara normal / Consulta / CITREP: extractor_v3.R + coordenadas CSV
+      let nombreScript;
+      let nombreCSV = null; // solo requerido para extractor_v3.R
 
       switch (tipoNorm) {
         case 'senado':
-          nombreCSV = 'senado';
+          if (esConsulado) {
+            nombreScript = 'extractor_e14_sen_consulados.R';
+          } else {
+            nombreScript = 'extractor_v3.R';
+            nombreCSV = 'senado';
+          }
           break;
         case 'camara':
-          if (!codigoDepartamento) {
-            resolve({ success: false, error: 'Debe seleccionar un departamento para Cámara.' });
-            return;
+          if (esConsulado) {
+            nombreScript = 'extractor_e14_cam_consulados.R';
+          } else {
+            if (!codigoDepartamento) {
+              resolve({ success: false, error: 'Debe seleccionar un departamento para Cámara.' });
+              return;
+            }
+            nombreScript = 'extractor_v3.R';
+            nombreCSV = `camara_${codigoDepartamento}`;
           }
-          nombreCSV = `camara_${codigoDepartamento}`;
           break;
         case 'consulta':
+          nombreScript = 'extractor_v3.R';
           nombreCSV = 'consulta';
           break;
-        case 'citrep':
+        case 'citrep': {
           if (!circunscripcion) {
             resolve({ success: false, error: 'Debe seleccionar una circunscripción para CITREP.' });
             return;
           }
-          // Extraer número de "CIRCUNSCRIPCION 1" → "01"
           const numCirc = circunscripcion.replace(/\D/g, '').padStart(2, '0');
+          nombreScript = 'extractor_v3.R';
           nombreCSV = `citrep_${numCirc}`;
           break;
+        }
         default:
           resolve({
             success: false,
@@ -600,18 +615,29 @@ ipcMain.handle('convertir-pdf-csv-v2', async (event, { archivos, apiKey, modo = 
           return;
       }
 
-      // Validar que existe el CSV de coordenadas ANTES de lanzar R
-      const csvCoordenadas = path.join(obtenerRutaScripts(), 'coordenadas', `${nombreCSV}.csv`);
-      if (!fs.existsSync(csvCoordenadas)) {
-        resolve({
-          success: false,
-          error: `No existe el archivo de coordenadas para "${tipoEleccion}". Coloque el CSV en r-scripts/coordenadas/${nombreCSV}.csv`
-        });
-        return;
+      // Validar CSV de coordenadas solo cuando el script lo requiere
+      if (nombreCSV) {
+        const csvCoordenadas = path.join(obtenerRutaScripts(), 'coordenadas', `${nombreCSV}.csv`);
+        if (!fs.existsSync(csvCoordenadas)) {
+          resolve({
+            success: false,
+            error: `No existe el archivo de coordenadas para "${tipoEleccion}". Coloque el CSV en r-scripts/coordenadas/${nombreCSV}.csv`
+          });
+          return;
+        }
       }
 
       const rPath = obtenerRutaR();
-      const scriptPath = path.join(obtenerRutaScripts(), 'extractor_v3.R');
+      const scriptPath = path.join(obtenerRutaScripts(), nombreScript);
+
+      // Validar que el script existe (scripts de consulados solo disponibles en versión CNE)
+      if (!fs.existsSync(scriptPath)) {
+        resolve({
+          success: false,
+          error: `Script no disponible: ${nombreScript}. Esta funcionalidad requiere la versión CNE de la aplicación.`
+        });
+        return;
+      }
       const outputDir = obtenerCarpetaSalida();
 
       // Crear carpeta de salida si no existe
@@ -625,7 +651,7 @@ ipcMain.handle('convertir-pdf-csv-v2', async (event, { archivos, apiKey, modo = 
         api_key: apiKey,
         carpeta_salida: outputDir,
         modo: modo,
-        tipo_eleccion: nombreCSV
+        tipo_eleccion: nombreCSV || tipoNorm
       };
 
       const manifiestoPath = path.join(outputDir, 'manifiesto.json');

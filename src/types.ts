@@ -103,7 +103,7 @@ declare global {
       leerLogProceso: () => Promise<object | null>;
       obtenerFallidos: () => Promise<ArchivoFallido[]>;
       seleccionarCarpetaSalida: () => Promise<string | null>;
-      compararE14E24: (archivoCSV: string, archivoMMV: string, carpetaSalida?: string) => Promise<{
+      compararE14E24: (archivoCSV: string, archivoMMV: string, carpetaSalida?: string, tipoEleccion?: string) => Promise<{
         success: boolean;
         error?: string;
         outputDir?: string;

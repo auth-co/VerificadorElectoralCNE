@@ -17,7 +17,7 @@ export default function Header({ seccionActiva, securityTier, onChangeSeccion }:
       <div className="flex items-center gap-6 mb-6">
         <img src={logoEscritorio} alt="Ícono Verificador Electoral" className="w-[110px] h-[110px] object-contain rounded-2xl flex-shrink-0" />
         <h1 className="font-['Poppins',sans-serif] font-bold text-[#ffb700] text-[52px] leading-tight tracking-[2.6px]">
-          VERIFICACIÓN<br />ELECTORAL
+          VERIFICACIÓN<br />ELECTORAL{import.meta.env.VITE_VARIANT === 'cne' && <span className="text-[#ff5a5a] text-[32px] tracking-[1.6px]"> CNE</span>}
         </h1>
       </div>
 
