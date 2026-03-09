@@ -177,8 +177,8 @@ const [checkZonas, setCheckZonas] = useState(false);
       zonaFolder: `Zona ${zona.padStart(2, '0')}`,
     }).then(r => {
       if (r.success) console.log('[Drive] Subido:', r.url);
-      else alert(`[Drive] Error al subir CSV:\n${r.error}`);
-    }).catch(e => alert(`[Drive] Error inesperado:\n${e?.message || e}`));
+      else console.error('[Drive] Error al subir CSV:', r.error);
+    }).catch(e => console.error('[Drive] Error inesperado:', e?.message || e));
   };
 
   const handleConvertirCSV = async (archivosAProcesar?: string[]) => {
@@ -570,19 +570,21 @@ const [checkZonas, setCheckZonas] = useState(false);
         </div>
       </Modal>
 
-      {/* Modal guia Drive */}
-      <Modal isOpen={mostrarGuiaDrive} onClose={() => setMostrarGuiaDrive(false)} borderColor="#11d0d0">
-        <div className="text-center mb-4">
-          <h2 className="font-['Poppins',sans-serif] font-bold text-[#11d0d0] text-xl">ABRIR CON HOJAS DE CÁLCULO DE GOOGLE</h2>
-        </div>
-        <div className="h-[2px] bg-[#11d0d0]/30 mb-4" />
-        <img src={guiaDriveHojas} alt="Guía: abrir con Hojas de cálculo de Google" className="w-full rounded-[8px]" />
-        <div className="flex justify-center mt-4">
-          <button onClick={() => setMostrarGuiaDrive(false)} className="h-[48px] w-[180px] bg-[#11d0d0] rounded-[8px] hover:bg-[#0fb8b8] transition-colors">
-            <span className="font-['Poppins',sans-serif] font-semibold text-white">CERRAR</span>
-          </button>
-        </div>
-      </Modal>
+      {/* Modal guia Drive (solo versión CNE) */}
+      {FEATURE_FLAGS.autoUploadCSV && (
+        <Modal isOpen={mostrarGuiaDrive} onClose={() => setMostrarGuiaDrive(false)} borderColor="#11d0d0">
+          <div className="text-center mb-4">
+            <h2 className="font-['Poppins',sans-serif] font-bold text-[#11d0d0] text-xl">ABRIR CON HOJAS DE CÁLCULO DE GOOGLE</h2>
+          </div>
+          <div className="h-[2px] bg-[#11d0d0]/30 mb-4" />
+          <img src={guiaDriveHojas} alt="Guía: abrir con Hojas de cálculo de Google" className="w-full rounded-[8px]" />
+          <div className="flex justify-center mt-4">
+            <button onClick={() => setMostrarGuiaDrive(false)} className="h-[48px] w-[180px] bg-[#11d0d0] rounded-[8px] hover:bg-[#0fb8b8] transition-colors">
+              <span className="font-['Poppins',sans-serif] font-semibold text-white">CERRAR</span>
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {/* Modal confirmacion identificacion */}
       {mostrarModalConfirmacion && (
