@@ -222,7 +222,21 @@ step(9, 'Verificando assets publicados en GitHub');
 
 execSync('sleep 5');
 
-const ghToken   = execSync('gh auth token', { encoding: 'utf8', env: { ...process.env } }).trim();
+// Obtener token usando gh cli con HOME explícito para garantizar que funcione en subprocess
+const ghHome = process.env.HOME || process.env.USERPROFILE || '';
+const ghToken = (() => {
+  try {
+    return execSync('gh auth token', { encoding: 'utf8', env: { ...process.env, HOME: ghHome } }).trim();
+  } catch {
+    // Fallback: leer token desde archivo de configuración gh
+    const cfgPath = path.join(ghHome, '.config', 'gh', 'hosts.yml');
+    if (fs.existsSync(cfgPath)) {
+      const match = fs.readFileSync(cfgPath, 'utf8').match(/oauth_token:\s*(\S+)/);
+      if (match) return match[1];
+    }
+    fail('No se pudo obtener el token de gh CLI. Ejecuta: gh auth login');
+  }
+})();
 const releaseInfo = capture(
   `curl -sf -H "Authorization: token ${ghToken}" "https://api.github.com/repos/${REPO}/releases/tags/${tag}"`
 );
