@@ -218,7 +218,7 @@ step(9, 'Verificando assets publicados en GitHub');
 
 execSync('sleep 5');
 
-const ghToken   = capture('gh auth token');
+const ghToken   = execSync('gh auth token', { encoding: 'utf8', env: { ...process.env } }).trim();
 const releaseInfo = capture(
   `curl -sf -H "Authorization: token ${ghToken}" "https://api.github.com/repos/${REPO}/releases/tags/${tag}"`
 );
