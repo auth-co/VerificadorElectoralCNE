@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { readFileSync } from 'fs';
+
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 export default defineConfig(({ mode }) => {
   const cneColorPlugin = {
@@ -21,6 +24,9 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: './src/test/setup.ts',
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
     },
     plugins: [react(), ...(mode === 'cne' ? [cneColorPlugin] : [])],
     base: './',

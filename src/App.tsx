@@ -515,9 +515,10 @@ export default function App() {
           )}
         </div>
 
-        {carpetaTrabajo && (
-          <p className="text-white/50 text-sm mt-4 text-center">Carpeta de trabajo: {carpetaTrabajo}</p>
-        )}
+        <p className="text-white/30 text-xs mt-4 text-center">
+          {carpetaTrabajo && <>Carpeta de trabajo: {carpetaTrabajo} · </>}
+          v{__APP_VERSION__}{import.meta.env.VITE_VARIANT === 'cne' ? ' CNE' : ''}
+        </p>
       </div>
 
       {/* Modal de errores */}
