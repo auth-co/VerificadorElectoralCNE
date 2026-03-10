@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env ELECTRON_DEV=true electron .\"",
+    "electron:dev": "concurrently \"vite --mode cne\" \"wait-on http://localhost:5173 && cross-env ELECTRON_DEV=true electron .\"",
     "electron:build": "vite build && electron-builder",
     "electron:preview": "vite build && electron .",
     "setup:python": "node tools/setup-python-portable.cjs",
@@ -25,6 +25,7 @@
     "release": "node tools/publicar-version.cjs",
     "release:minor": "node tools/publicar-version.cjs --minor",
     "release:major": "node tools/publicar-version.cjs --major",
+    "release:patch": "node tools/publicar-version.cjs --patch",
     "test": "vitest run",
     "test:watch": "vitest"
   },
