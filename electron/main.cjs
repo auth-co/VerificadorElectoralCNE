@@ -608,18 +608,32 @@ ipcMain.handle('convertir-pdf-csv-v2', async (event, { archivos, apiKey, modo = 
       let nombreCSV = null; // solo requerido para extractor_v3.R
 
       switch (tipoNorm) {
-        case 'senado':
-          nombreScript = 'extractor_v3.R';
-          nombreCSV = 'senado';
-          break;
-        case 'camara':
-          if (!codigoDepartamento) {
-            resolve({ success: false, error: 'Debe seleccionar un departamento para Cámara.' });
-            return;
+        case 'senado': {
+          // Consulados: código de departamento "88" en DIVIPOLE
+          const esConsuladoSen = codigoDepartamento === '88';
+          if (esConsuladoSen) {
+            nombreScript = 'extractor_e14_sen_consulados.R';
+          } else {
+            nombreScript = 'extractor_v3.R';
+            nombreCSV = 'senado';
           }
-          nombreScript = 'extractor_v3.R';
-          nombreCSV = `camara_${codigoDepartamento}`;
           break;
+        }
+        case 'camara': {
+          // Consulados: código de departamento "88" en DIVIPOLE
+          const esConsuladoCam = codigoDepartamento === '88';
+          if (esConsuladoCam) {
+            nombreScript = 'extractor_e14_cam_consulados.R';
+          } else {
+            if (!codigoDepartamento) {
+              resolve({ success: false, error: 'Debe seleccionar un departamento para Cámara.' });
+              return;
+            }
+            nombreScript = 'extractor_v3.R';
+            nombreCSV = `camara_${codigoDepartamento}`;
+          }
+          break;
+        }
         case 'consulta':
           nombreScript = 'extractor_v3.R';
           nombreCSV = 'consulta';
@@ -658,7 +672,10 @@ ipcMain.handle('convertir-pdf-csv-v2', async (event, { archivos, apiKey, modo = 
       const scriptPath = path.join(obtenerRutaScripts(), nombreScript);
 
       if (!fs.existsSync(scriptPath)) {
-        resolve({ success: false, error: `Script no encontrado: ${nombreScript}.` });
+        resolve({
+          success: false,
+          error: `Script no disponible: ${nombreScript}. Esta funcionalidad requiere la versión CNE de la aplicación.`
+        });
         return;
       }
       const outputDir = obtenerCarpetaSalida();
@@ -1214,5 +1231,14 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
   });
 });
 
+ipcMain.handle('auto-upload-drive', async (event, params) => {
+  try {
+    const { uploadToCorrectFolder } = require('./drive-upload.cjs');
+    return await uploadToCorrectFolder(params.archivoFinal, params);
+  } catch (err) {
+    console.error('[Drive] Error completo:', err);
+    return { success: false, error: err.message || JSON.stringify(err) };
+  }
+});
 
 
