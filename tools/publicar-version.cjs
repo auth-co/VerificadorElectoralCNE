@@ -121,21 +121,49 @@ if (rFiles.length > 0) {
 // ─── PASO 4: Build CNE ────────────────────────────────────────────────────────
 step(4, 'Construyendo instalador Windows CNE');
 
-run([
-  'npx vite build --mode cne &&',
-  'npx electron-builder --win',
-  `--config.nsis.artifactName="Verificador-CNE-Setup-${vNew}.exe"`,
-  '--config.productName="Verificador Electoral CNE"',
-  '--config.appId="com.verificador.electoral.cne"',
-  '--config.nsis.shortcutName="Verificador Electoral CNE"',
-  '--config.win.icon="public/icon-cne.ico"',
-  '--config.nsis.installerIcon="public/icon-cne.ico"',
-  '--config.nsis.uninstallerIcon="public/icon-cne.ico"',
-  '--config.nsis.installerHeaderIcon="public/icon-cne.ico"',
-  `--config.extraResources=[{"from":"r-portable","to":"r-portable","filter":["**/*"]},{"from":"r-scripts","to":"r-scripts","filter":["**/*.enc"]},{"from":"drive-config.json","to":"drive-config.json"}]`,
-  '--config.nsis.include="build/installer-cne.nsh"',
-  `--config.publish.repo="VerificadorElectoralCNE"`,
-].join(' '));
+// Escribir config de overrides a un JSON temporal para evitar problemas de
+// escaping de shell con extraResources (los corchetes y ** se manglan en bash).
+const overrideConfig = {
+  appId: 'com.verificador.electoral.cne',
+  productName: 'Verificador Electoral CNE',
+  directories: { output: 'dist-electron' },
+  files: ['dist/**/*', 'electron/**/*'],
+  win: {
+    target: 'nsis',
+    icon: 'public/icon-cne.ico',
+    legalTrademarks: 'Consejo Nacional Electoral de Colombia - Elecciones Congreso 2026',
+    requestedExecutionLevel: 'asInvoker',
+    verifyUpdateCodeSignature: false,
+  },
+  nsis: {
+    oneClick: false,
+    allowToChangeInstallationDirectory: true,
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
+    deleteAppDataOnUninstall: false,
+    displayLanguageSelector: false,
+    artifactName: `Verificador-CNE-Setup-${vNew}.exe`,
+    shortcutName: 'Verificador Electoral CNE',
+    installerIcon: 'public/icon-cne.ico',
+    uninstallerIcon: 'public/icon-cne.ico',
+    installerHeaderIcon: 'public/icon-cne.ico',
+    include: 'build/installer-cne.nsh',
+  },
+  extraResources: [
+    { from: 'r-portable',        to: 'r-portable',        filter: ['**/*'] },
+    { from: 'r-scripts',         to: 'r-scripts',         filter: ['**/*.enc'] },
+    { from: 'drive-config.json', to: 'drive-config.json' },
+  ],
+  publish: { provider: 'github', owner: 'auth-co', repo: 'VerificadorElectoralCNE' },
+};
+
+const distDir0 = path.join(ROOT, 'dist-electron');
+if (!fs.existsSync(distDir0)) fs.mkdirSync(distDir0, { recursive: true });
+const overridePath = path.join(distDir0, 'cne-build-override.json');
+fs.writeFileSync(overridePath, JSON.stringify(overrideConfig, null, 2));
+ok(`Config de build escrita en ${path.relative(ROOT, overridePath)}`);
+
+run(`npx vite build --mode cne && npx electron-builder --win --config ${overridePath}`);
 
 // ─── PASO 5: Verificar artefactos ────────────────────────────────────────────
 step(5, 'Verificando artefactos generados');
@@ -161,6 +189,17 @@ if (fs.existsSync(appUpdatePath)) {
   }
   ok('app-update.yml → VerificadorElectoralCNE ✓');
 }
+
+// Verificar que r-scripts fue incluido (el bug histórico: extraResources se manglaba en bash)
+const rScriptsBundled = path.join(distDir, 'win-unpacked', 'resources', 'r-scripts');
+if (!fs.existsSync(rScriptsBundled)) {
+  fail('r-scripts NO fue incluido en el instalador. Revisa la config de extraResources.');
+}
+const encFiles = fs.readdirSync(rScriptsBundled).filter(f => f.endsWith('.enc'));
+if (encFiles.length === 0) {
+  fail('r-scripts existe pero no contiene archivos .enc');
+}
+ok(`r-scripts incluido con ${encFiles.length} archivo(s) .enc ✓`);
 
 // ─── PASO 6: Generar latest.yml ──────────────────────────────────────────────
 step(6, 'Generando latest.yml con SHA512 correcto');
