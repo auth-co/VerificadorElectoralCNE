@@ -22,18 +22,25 @@ const KEY_SIZE = 16; // 128 bits (USB fragment; combined with GitHub fragment vi
 function getRemovableDrivesWindows() {
   // Try PowerShell first (works on Windows 10+ and Windows 11)
   try {
-    return getRemovableDrivesPS();
+    const drives = getRemovableDrivesPS();
+    if (drives.length > 0) return drives;
+    // PS succeeded but returned 0 drives — still try wmic in case of DriveType mismatch
   } catch (err) {
     console.warn('PowerShell deteccion fallida, intentando wmic:', err.message);
   }
 
   // Fallback: wmic (deprecated but may still exist on Windows 10)
   try {
-    return getRemovableDrivesWmic();
+    const drives = getRemovableDrivesWmic();
+    if (drives.length > 0) return drives;
   } catch (err) {
-    console.error('wmic deteccion tambien fallida:', err.message);
-    return [];
+    console.warn('wmic deteccion fallida, usando escaneo de letras:', err.message);
   }
+
+  // Last resort: scan A-Z with built-in vol command (no PowerShell/WMI required)
+  // Works on machines with strict execution policies or deprecated WMI
+  console.log('Usando escaneo de letras de unidad (vol) como ultimo recurso...');
+  return getRemovableDrivesScan();
 }
 
 /**
@@ -84,6 +91,40 @@ function getRemovableDrivesWmic() {
         drives.push({ deviceId, serial, extraSerials: [] });
       }
     }
+  }
+  return drives;
+}
+
+/**
+ * Last-resort fallback: scan all drive letters (A-Z) and use the built-in
+ * `vol` command to get the volume serial number.
+ * Works on ALL Windows versions without PowerShell or WMI.
+ * Only returns drives where the security key file is accessible.
+ * @returns {{ deviceId: string, serial: string, extraSerials: string[] }[]}
+ */
+function getRemovableDrivesScan() {
+  const drives = [];
+  for (let code = 65; code <= 90; code++) {
+    const letter = String.fromCharCode(code);
+    const deviceId = letter + ':';
+    const root = letter + ':\\';
+    try {
+      if (!fs.existsSync(root)) continue;
+
+      // Only include drives that have the key file to avoid scanning all fixed disks
+      const keyPath = path.join(deviceId, KEY_FOLDER, KEY_FILE);
+      if (!fs.existsSync(keyPath)) continue;
+
+      // vol X: is a built-in CMD command, always available on Windows
+      let serial = '';
+      try {
+        const volOut = execSync(`vol ${deviceId}`, { encoding: 'utf8', timeout: 3000 });
+        const m = volOut.match(/[Ss]erial [Nn]umber is ([0-9A-Fa-f-]+)/);
+        if (m) serial = m[1].replace(/-/g, '').toUpperCase();
+      } catch (_) {}
+
+      drives.push({ deviceId, serial, extraSerials: [] });
+    } catch (_) {}
   }
   return drives;
 }

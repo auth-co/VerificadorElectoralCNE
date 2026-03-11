@@ -1,5 +1,4 @@
 import logoEscritorio from '../assets/log_escritorio.png';
-import logoCne from '../assets/logo-cne.png';
 import type { Seccion } from '../types';
 import { TAB_LABELS, TAB_BG_CLASSES, getVisibleTabs } from '../constants';
 
@@ -16,7 +15,7 @@ export default function Header({ seccionActiva, securityTier, onChangeSeccion }:
   return (
     <>
       <div className="flex items-center gap-6 mb-6">
-        <img src={import.meta.env.VITE_VARIANT === 'cne' ? logoCne : logoEscritorio} alt="Ícono Verificador Electoral" className="w-[110px] h-[110px] object-contain rounded-2xl flex-shrink-0" />
+        <img src={logoEscritorio} alt="Ícono Verificador Electoral" className="w-[110px] h-[110px] object-contain rounded-2xl flex-shrink-0" />
         <h1 className="font-['Poppins',sans-serif] font-bold text-[#ffb700] text-[52px] leading-tight tracking-[2.6px]">
           VERIFICACIÓN<br />ELECTORAL{import.meta.env.VITE_VARIANT === 'cne' && <span className="text-[#ff5a5a] text-[32px] tracking-[1.6px]"> CNE</span>}
         </h1>
