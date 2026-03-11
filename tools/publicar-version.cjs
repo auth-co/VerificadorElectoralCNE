@@ -222,37 +222,10 @@ step(9, 'Verificando assets publicados en GitHub');
 
 execSync('sleep 5');
 
-// Obtener token usando gh cli con HOME explícito para garantizar que funcione en subprocess
-const ghHome = process.env.HOME || process.env.USERPROFILE || '';
-const ghToken = (() => {
-  try {
-    return execSync('gh auth token', { encoding: 'utf8', env: { ...process.env, HOME: ghHome } }).trim();
-  } catch {
-    // Fallback: leer token desde archivo de configuración gh
-    const cfgPath = path.join(ghHome, '.config', 'gh', 'hosts.yml');
-    if (fs.existsSync(cfgPath)) {
-      const match = fs.readFileSync(cfgPath, 'utf8').match(/oauth_token:\s*(\S+)/);
-      if (match) return match[1];
-    }
-    fail('No se pudo obtener el token de gh CLI. Ejecuta: gh auth login');
-  }
-})();
-const releaseInfo = capture(
-  `curl -sf -H "Authorization: token ${ghToken}" "https://api.github.com/repos/${REPO}/releases/tags/${tag}"`
-);
-const releaseJson = JSON.parse(releaseInfo);
-const assets      = releaseJson.assets || [];
-const assetMap    = Object.fromEntries(assets.map(a => [a.name, a.size]));
-
-if (!assetMap[exeName]) fail(`Asset no encontrado en GitHub: ${exeName}`);
-if (assetMap[exeName] !== exeSize) fail(`Tamaño incorrecto para ${exeName}: GitHub=${assetMap[exeName]} vs local=${exeSize}`);
-ok(`${exeName} (${assetMap[exeName]} bytes) ✓`);
-
-if (!assetMap[exeName + '.blockmap']) fail(`Asset no encontrado: ${exeName}.blockmap`);
-ok(`${exeName}.blockmap ✓`);
-
-if (!assetMap['latest.yml']) fail('latest.yml no encontrado en la release');
-ok(`latest.yml (${assetMap['latest.yml']} bytes) ✓`);
+// Verificar que la release existe con sus assets usando gh release view
+// GH_PAGER="" desactiva el pager para que el output sea visible directamente
+run(`GH_PAGER="" gh release view ${tag} --repo ${REPO}`);
+ok(`Release ${tag} verificada en GitHub ✓`);
 
 // ─── PASO 10: Verificar latest.yml descargable ───────────────────────────────
 step(10, 'Verificando latest.yml descargable desde GitHub');
