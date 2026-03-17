@@ -1,9 +1,11 @@
 import StepBadge from '../StepBadge';
 import type { DiscrepanciaFila, ResultadoComparacion } from '../../types';
+import { TIPOS_ELECCION } from '../../constants';
 
 interface TabComparacionArchivosProps {
   archivoCSV: string | null;
   carpetaMMV: string | null;
+  tipoEleccionComparacion: string;
   comparacionEnProgreso: boolean;
   comparacionCompleta: boolean;
   progresoComparacion: number;
@@ -12,18 +14,20 @@ interface TabComparacionArchivosProps {
   discrepanciasDetalle: DiscrepanciaFila[];
   onSeleccionarCSV: () => void;
   onSeleccionarMMV: () => void;
+  onTipoEleccionComparacion: (v: string) => void;
   onGenerarComparacion: () => void;
   onCancelarProceso: () => void;
-  onDescargarResultados: () => void;
+  onVerUbicacion: () => void;
   onContinuar: () => void;
 }
 
 export default function TabComparacionArchivos({
-  archivoCSV, carpetaMMV, comparacionEnProgreso, comparacionCompleta,
+  archivoCSV, carpetaMMV, tipoEleccionComparacion, comparacionEnProgreso, comparacionCompleta,
   progresoComparacion, errorComparacion, resultadoComparacion, discrepanciasDetalle,
-  onSeleccionarCSV, onSeleccionarMMV, onGenerarComparacion,
-  onCancelarProceso, onDescargarResultados
+  onSeleccionarCSV, onSeleccionarMMV, onTipoEleccionComparacion, onGenerarComparacion,
+  onCancelarProceso, onVerUbicacion
 }: TabComparacionArchivosProps) {
+  const selectClass = "w-full h-[42px] bg-[#d9d9d9] rounded-[8px] px-3 text-[#40376d] font-['Poppins',sans-serif] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#ff5a5a] disabled:opacity-50 disabled:cursor-not-allowed";
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-20 animate-fadeIn max-w-[1000px] mx-auto">
@@ -99,10 +103,30 @@ export default function TabComparacionArchivos({
           </div>
         </div>
 
-        {/* Columna 2: Paso 3 */}
+        {/* Columna 2: Pasos 3 y 4 */}
         <div className="max-w-[380px]">
           <div className="flex items-center gap-3 mb-4">
             <StepBadge number={3} color="#ff5a5a" />
+            <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-lg">
+              Selecciona el tipo de elección.
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label className="font-['Poppins',sans-serif] font-semibold text-[#40376d] text-lg block mb-2">TIPO DE ELECCIÓN</label>
+            <select
+              value={tipoEleccionComparacion}
+              onChange={(e) => onTipoEleccionComparacion(e.target.value)}
+              disabled={comparacionEnProgreso}
+              className={selectClass}
+            >
+              <option value="">Seleccionar...</option>
+              {TIPOS_ELECCION.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-3 mb-4">
+            <StepBadge number={4} color="#ff5a5a" />
             <p className="font-['Poppins',sans-serif] font-medium text-[#40376d] text-lg">
               Crea el archivo de comparación.
             </p>
@@ -110,7 +134,7 @@ export default function TabComparacionArchivos({
 
           <button
             onClick={onGenerarComparacion}
-            disabled={comparacionEnProgreso || !archivoCSV || !carpetaMMV}
+            disabled={comparacionEnProgreso || !archivoCSV || !carpetaMMV || !tipoEleccionComparacion}
             className={`w-full h-[70px] rounded-[8px] transition-colors cursor-pointer ${
               comparacionEnProgreso || !archivoCSV || !carpetaMMV
                 ? 'bg-[#e0e0e0] cursor-not-allowed'
@@ -161,10 +185,13 @@ export default function TabComparacionArchivos({
                 )}
               </div>
               <button
-                onClick={onDescargarResultados}
-                className="w-full h-[50px] bg-[#d9d9d9] rounded-[8px] hover:bg-[#c9c9c9] transition-colors cursor-pointer"
+                onClick={onVerUbicacion}
+                className="w-full h-[50px] bg-[#d9d9d9] rounded-[8px] hover:bg-[#c9c9c9] transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
-                <span className="font-['Poppins',sans-serif] font-medium text-lg text-black">DESCARGAR</span>
+                <svg className="w-5 h-5 text-[#40376d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                </svg>
+                <span className="font-['Poppins',sans-serif] font-medium text-lg text-black">VER UBICACIÓN</span>
               </button>
               <p className="font-['Poppins',sans-serif] text-[#ff5a5a] text-sm leading-relaxed">
                 Avísale a la persona con la zona asignada, que ya se encuentra el archivo de comparación listo para realizar la verificación manual.

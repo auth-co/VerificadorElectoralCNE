@@ -89,6 +89,8 @@ export default function App() {
   const [resultadoComparacion, setResultadoComparacion] = useState<ResultadoComparacion | null>(null);
   const [errorComparacion, setErrorComparacion] = useState<string | null>(null);
   const [discrepanciasDetalle, setDiscrepanciasDetalle] = useState<DiscrepanciaFila[]>([]);
+  const [tipoEleccionComparacion, setTipoEleccionComparacion] = useState<string>('');
+  const [carpetaComparacion, setCarpetaComparacion] = useState<string | null>(null);
 
   // Cascading selects
   const esCITREP = tipoEleccion === 'CITREP';
@@ -363,6 +365,7 @@ export default function App() {
     setComparacionEnProgreso(true);
     setComparacionCompleta(false);
     setResultadoComparacion(null);
+    setCarpetaComparacion(null);
     setErrorComparacion(null);
     setDiscrepanciasDetalle([]);
     setProgresoComparacion(10);
@@ -390,7 +393,8 @@ export default function App() {
     });
 
     try {
-      const resultado = await window.electronAPI.compararE14E24(archivoCSV, carpetaMMV);
+      const resultado = await window.electronAPI.compararE14E24(archivoCSV, carpetaMMV, undefined, tipoEleccionComparacion);
+      if (resultado.outputDir) setCarpetaComparacion(resultado.outputDir);
       if (!resultado.success && !canceladoRef.current) setErrorComparacion(resultado.error || 'Error en la comparación');
     } catch (err) {
       console.error('Error en comparación:', err);
@@ -492,6 +496,7 @@ export default function App() {
           {seccionActiva === 'comparacion_archivos' && (
             <TabComparacionArchivos
               archivoCSV={archivoCSV} carpetaMMV={carpetaMMV}
+              tipoEleccionComparacion={tipoEleccionComparacion}
               comparacionEnProgreso={comparacionEnProgreso}
               comparacionCompleta={comparacionCompleta}
               progresoComparacion={progresoComparacion}
@@ -500,9 +505,10 @@ export default function App() {
               discrepanciasDetalle={discrepanciasDetalle}
               onSeleccionarCSV={handleSeleccionarCSV}
               onSeleccionarMMV={handleSeleccionarMMV}
+              onTipoEleccionComparacion={setTipoEleccionComparacion}
               onGenerarComparacion={handleGenerarComparacion}
               onCancelarProceso={handleCancelarProceso}
-              onDescargarResultados={() => window.electronAPI?.abrirResultados()}
+              onVerUbicacion={() => carpetaComparacion && window.electronAPI?.abrirCarpeta(carpetaComparacion)}
               onContinuar={handleContinuar}
             />
           )}

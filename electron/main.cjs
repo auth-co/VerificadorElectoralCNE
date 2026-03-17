@@ -456,10 +456,12 @@ ipcMain.handle('seleccionar-carpeta-mmv', async () => {
   return result.canceled ? null : result.filePaths[0];
 });
 
-// Abrir carpeta en explorador
+// Abrir carpeta en explorador (relativa a userData, o absoluta si path.isAbsolute)
 ipcMain.handle('abrir-carpeta', async (event, ruta) => {
   const carpetaBase = app.getPath('userData');
-  const rutaCompleta = ruta ? path.join(carpetaBase, ruta) : carpetaBase;
+  const rutaCompleta = ruta
+    ? (path.isAbsolute(ruta) ? ruta : path.join(carpetaBase, ruta))
+    : carpetaBase;
 
   if (fs.existsSync(rutaCompleta)) {
     shell.openPath(rutaCompleta);
@@ -1060,7 +1062,7 @@ ipcMain.handle('seleccionar-carpeta-salida', async () => {
 // ============================================
 // Comparar E14 extraidos vs E24 oficial (MMV)
 // ============================================
-ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpetaSalida) => {
+ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpetaSalida, tipoEleccion) => {
   return new Promise((resolve) => {
     let tmpCsvE14 = null;
     let tmpCsvMMV = null;
@@ -1099,7 +1101,8 @@ ipcMain.handle('comparar-e14-e24', async (event, archivoCSV, archivoMMV, carpeta
       const manifiesto = {
         archivo_extraidos: archivoCSV,
         archivo_oficiales: archivoMMV,
-        carpeta_salida: outputDir
+        carpeta_salida: outputDir,
+        tipo_eleccion: tipoEleccion || ''
       };
 
       const manifiestoPath = path.join(outputDir, 'manifiesto_comparacion.json');

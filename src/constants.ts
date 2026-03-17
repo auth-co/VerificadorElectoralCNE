@@ -38,7 +38,7 @@ export const TAB_BG_CLASSES: Record<Seccion, string> = {
 export const URL_REGISTRADURIA = 'https://auth-co.github.io/redirect-registraduria/';
 export const URL_RELEASES = (import.meta.env.VITE_RELEASES_URL as string) || 'https://github.com/auth-co/VerificadorElectoralCNE/releases/latest';
 
-export const TIPOS_ELECCION = ['Senado', 'Camara', 'Consulta', 'CITREP'];
+export const TIPOS_ELECCION = ['Senado', 'Camara', 'Consulta', 'CITREP', 'Consulados Senado', 'Consulados Camara'];
 
 export function getVisibleTabs(tier: string): Seccion[] {
   if (tier === 'comparador') return COMPARADOR_TABS;
