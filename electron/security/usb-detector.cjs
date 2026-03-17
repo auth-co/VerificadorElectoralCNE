@@ -305,11 +305,16 @@ function findSecurityUSB() {
       if (fs.existsSync(keyPath)) {
         const stat = fs.statSync(keyPath);
         if (stat.size === KEY_SIZE) {
-          // Read device-id.txt if present — guaranteed-unique ID written during registration
-          const deviceIdPath = path.join(drive.deviceId, KEY_FOLDER, 'device-id.txt');
-          if (fs.existsSync(deviceIdPath)) {
-            const fileDeviceId = fs.readFileSync(deviceIdPath, 'utf8').trim();
-            if (fileDeviceId) drive.extraSerials.unshift(fileDeviceId);
+          // Read device-id file if present — guaranteed-unique ID written during registration
+          // On Linux the file is hidden (.device-id.txt); check both for backwards compatibility
+          const deviceIdCandidates = process.platform === 'win32'
+            ? [path.join(drive.deviceId, KEY_FOLDER, 'device-id.txt')]
+            : [path.join(drive.deviceId, KEY_FOLDER, '.device-id.txt'), path.join(drive.deviceId, KEY_FOLDER, 'device-id.txt')];
+          for (const deviceIdPath of deviceIdCandidates) {
+            if (fs.existsSync(deviceIdPath)) {
+              const fileDeviceId = fs.readFileSync(deviceIdPath, 'utf8').trim();
+              if (fileDeviceId) { drive.extraSerials.unshift(fileDeviceId); break; }
+            }
           }
           return { drive, keyPath };
         }
